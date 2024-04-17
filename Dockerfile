@@ -9,8 +9,6 @@ RUN echo "PS1='\[\e[1;38;2;231;41;138m\]${VIRTUAL_ENV:+[$(basename -- $VIRTUAL_E
 
 RUN pip install --upgrade pip
 
-RUN pip install poetry cookiecutter
-RUN pip install --upgrade git+https://github.com/cornellius-gp/linear_operator.git
-RUN pip install --upgrade git+https://github.com/cornellius-gp/gpytorch.git
 RUN export ALLOW_LATEST_GPYTORCH_LINOP=true
-RUN pip install --upgrade git+https://github.com/pytorch/botorch.git
+RUN pip install botorch
+RUN pip install ipython plotnine 
