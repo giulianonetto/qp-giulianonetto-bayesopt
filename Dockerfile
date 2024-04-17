@@ -1,4 +1,4 @@
-FROM giulianocruz/rstudio:0.0.11
+FROM pytorch/pytorch:2.2.1-cuda12.1-cudnn8-runtime
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -9,8 +9,3 @@ RUN echo "PS1='\[\e[1;38;2;231;41;138m\]${VIRTUAL_ENV:+[$(basename -- $VIRTUAL_E
 
 RUN pip install --upgrade pip
 RUN pip install poetry cookiecutter botorch
-
-COPY src/qppkg /qppkg
-RUN poetry install /qppkg
-
-COPY main.py /main.py
