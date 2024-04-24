@@ -80,6 +80,6 @@ arguments <- docopt::docopt(doc)
 # run all analyses
 run_qp5_r(
     n_runs=arguments.["--n_runs"],
-    n_trials=arguments.["--n_trials"],
-    output_dir=arguments.["--output_dir"]
+    n_trials=arguments["--n_trials"],
+    output_dir=arguments["--output_dir"]
 )
