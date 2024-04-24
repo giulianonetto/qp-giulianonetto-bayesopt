@@ -9,7 +9,7 @@ To reproduce all results, please make sure you have a Docker installation (v. >=
 
 ```
 docker build -t qp:qp5 .
-docker run -it -v ${PWD}:/home/rstudio/ \
+docker run --rm -it -v $(pwd):/home/rstudio \
     qp:qp5 \
     python3.10 src/main.py
 ```
