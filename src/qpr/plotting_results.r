@@ -95,7 +95,7 @@ plot_runtime_results <- function(output_dir) {
         )
 
 
-    df %>%
+    runtime_plot <- df %>%
         ggplot(aes(acquisition_abbrev, time_per_iteration)) +
         geom_boxplot(
             aes(fill = implementation),
