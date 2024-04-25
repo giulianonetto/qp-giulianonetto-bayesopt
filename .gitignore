@@ -280,3 +280,5 @@ TSWLatexianTemp*
 # custom
 *tmp*
 __pycache__
+README_files
+README.html
