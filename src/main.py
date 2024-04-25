@@ -3,7 +3,6 @@
 from docopt import docopt
 import subprocess
 import time
-import logging
 
 
 args = """ Run all QP5 analyses
@@ -50,10 +49,10 @@ if __name__ == '__main__':
 
     # run all analyses
     t0 = time.time()
-    logging.info(f"Running python-based simulation with BoTorch")
+    print(f"Running python-based simulation with BoTorch")
     subprocess.run(cmd_python_pipeline)
-    logging.info(f"Running R-based simulation with DiceOptim + plotting all results")
+    print(f"Running R-based simulation with DiceOptim + plotting all results")
     subprocess.run(cmd_r_pipeline)
     t1 = time.time()
-    logging.info(f"Done after {t1-t0:>4.2} seconds.")
+    print(f"Done after{t1-t0:>4.2} seconds.")
  

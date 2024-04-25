@@ -6,6 +6,7 @@ from docopt import docopt
 from pathlib import Path
 import pandas as pd
 
+
 def run_qp5_python(n_runs: Optional[int], n_trials: Optional[int], output_dir: Optional[str]):
     if n_runs:
         n_runs = int(n_runs)
