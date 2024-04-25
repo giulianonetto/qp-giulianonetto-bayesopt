@@ -3,7 +3,7 @@
 from docopt import docopt
 import subprocess
 import time
-import logger
+import logging
 
 
 args = """ Run all QP5 analyses
@@ -23,35 +23,37 @@ args = """ Run all QP5 analyses
 """
 
 if __name__ == '__main__':
-    arguments = docopt(args, version=f"qppkg v. {__version__}")
+    arguments = docopt(args, version=f"QP5")
+    n_runs = arguments["--n_runs"]
+    n_trials = arguments["--n_trials"]
+    output_dir = arguments["--output_dir"]
 
-    t0 = time.time()
+    # build commands
+    cmd_python_pipeline = ["python3.10", "src/qppy/submain.py"]
+    cmd_r_pipeline = ["Rscript", "src/qpr/submain.r"]
+
+    # add arguments if present
+    if n_runs:
+      n_runs_cmd = ["--n_runs", n_runs]
+      cmd_python_pipeline.extend(n_runs_cmd)
+      cmd_r_pipeline.extend(n_runs_cmd)
+    
+    if n_trials:
+      n_trials_cmd = ["--n_trials", n_trials]
+      cmd_python_pipeline.extend(n_trials_cmd)
+      cmd_r_pipeline.extend(n_trials_cmd)
+    
+    if output_dir:
+      output_dir_cmd = ["--output_dir", output_dir]
+      cmd_python_pipeline.extend(output_dir_cmd)
+      cmd_r_pipeline.extend(output_dir_cmd)
 
     # run all analyses
-    logger.info(f"Running python-based simulation with BoTorch")
-    cmd_python_pipeline = [
-      "python3.10",
-      "src/qppy/submain.py",
-      "--n_runs",
-      arguments["--n_runs"],
-      "--n_trials",
-      arguments["--n_trials"],
-      "--output_dir",
-      arguments["--output_dir"]
-    ]
+    t0 = time.time()
+    logging.info(f"Running python-based simulation with BoTorch")
     subprocess.run(cmd_python_pipeline)
-
-    logger.info(f"Running R-based simulation with DiceOptim + plotting all results")
-    cmd_r_pipeline = [
-      "Rscript",
-      "src/qpr/submain.r",
-      "--n_runs",
-      arguments["--n_runs"],
-      "--n_trials",
-      arguments["--n_trials"],
-      "--output_dir",
-      arguments["--output_dir"]
-    ]
+    logging.info(f"Running R-based simulation with DiceOptim + plotting all results")
     subprocess.run(cmd_r_pipeline)
     t1 = time.time()
-    logger.info(f"Done after {t1-t0:>4.2} seconds.")
+    logging.info(f"Done after {t1-t0:>4.2} seconds.")
+ 

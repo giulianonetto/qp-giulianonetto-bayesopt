@@ -33,16 +33,24 @@ plot_gap_results <- function(output_dir) {
     botorch_gap <- file.path(output_dir, "results_botorch_gap.tsv")
     diceoptim_gap <- file.path(output_dir, "results_diceoptim_gap.tsv")
 
+    if (isFALSE(file.exists(botorch_gap))) {
+        msg <- stringr::str_glue("File not found (BoTorch gap results): {botorch_gap}")
+        rlang::abort(msg)
+    }
+    if (isFALSE(file.exists(diceoptim_gap))) {
+        msg <- stringr::str_glue("File not found (DiceOptim gap results): {diceoptim_gap}")
+        rlang::abort(msg)
+    }
+
     df <- bind_rows(
         read_tsv(botorch_gap, show_col_types = FALSE) %>% mutate(implementation = "BoTorch"),
         read_tsv(diceoptim_gap, show_col_types = FALSE) %>% mutate(implementation = "DiceOptim")
     ) %>%
         parse_labels() %>%
+        # TODO: remove once you have actual data
         mutate(
             gap_estimate = trial / 9 + rnorm(180, sd = .05),
-            gap_se = 0.05,
-            objective_estimate = trial / 9 + rnorm(180, sd = .05),
-            objective_se = 0.05
+            gap_se = 0.05
         )
 
 
@@ -59,7 +67,7 @@ plot_gap_results <- function(output_dir) {
             aes(fill = objective, group = objective),
             alpha = 0.3
         ) +
-        geom_line(aes(color = objective, group = objective)) +
+        geom_line(aes(color = objective, group = objective), linewidth = 1) +
         facet_grid(rows = vars(implementation), cols = vars(acquisition)) +
         labs(
             x = "Iteration",
@@ -76,7 +84,9 @@ plot_gap_results <- function(output_dir) {
             panel.grid.minor.y = element_line(linewidth = 0.5)
         ) +
         scale_x_continuous(breaks = scales::pretty_breaks(10)) +
-        coord_cartesian(ylim = c(0, 1))
+        coord_cartesian(ylim = c(0, 1)) +
+        scale_color_brewer(palette = "Set1") +
+        scale_fill_brewer(palette = "Set1")
 
     return(gap_plot)
 }
@@ -85,15 +95,48 @@ plot_runtime_results <- function(output_dir) {
     botorch_runtime <- file.path(output_dir, "results_botorch_runtime.tsv")
     diceoptim_runtime <- file.path(output_dir, "results_botorch_runtime.tsv")
 
+    if (isFALSE(file.exists(botorch_runtime))) {
+        msg <- stringr::str_glue("File not found (BoTorch runtime results): {botorch_runtime}")
+        rlang::abort(msg)
+    }
+    if (isFALSE(file.exists(diceoptim_runtime))) {
+        msg <- stringr::str_glue("File not found (DiceOptim runtime results): {diceoptim_runtime}")
+        rlang::abort(msg)
+    }
+
     df <- bind_rows(
         read_tsv(botorch_runtime, show_col_types = FALSE) %>% mutate(implementation = "BoTorch"),
         read_tsv(diceoptim_runtime, show_col_types = FALSE) %>% mutate(implementation = "DiceOptim")
     ) %>%
         parse_labels() %>%
+        # TODO: remove once you have actual data
         mutate(
             time_per_iteration = rpois(nrow(.), 100)
         )
 
+    newer_ggplot2 <- as.logical(compareVersion(as.character(packageVersion("ggplot2")), "3.4.4"))
+    if (isTRUE(newer_ggplot2)) {
+        my_theme <- list(
+            theme(
+                legend.position = "inside",
+                legend.position.inside = c(0.07, 0.9),
+                strip.text = element_text(face = "bold"),
+                panel.grid.major.y = element_line(),
+                panel.grid.major.x = element_line(linewidth = 0.5),
+                panel.grid.minor.y = element_line(linewidth = 0.5)
+            )
+        )
+    } else {
+        my_theme <- list(
+            theme(
+                legend.position = c(0.07, 0.9),
+                strip.text = element_text(face = "bold"),
+                panel.grid.major.y = element_line(),
+                panel.grid.major.x = element_line(linewidth = 0.5),
+                panel.grid.minor.y = element_line(linewidth = 0.5)
+            )
+        )
+    }
 
     runtime_plot <- df %>%
         ggplot(aes(acquisition_abbrev, time_per_iteration)) +
@@ -104,15 +147,9 @@ plot_runtime_results <- function(output_dir) {
         ) +
         facet_wrap(~objective) +
         theme_classic(base_size = 20) +
-        theme(
-            legend.position = "inside",
-            legend.position.inside = c(0.07, 0.9),
-            strip.text = element_text(face = "bold"),
-            panel.grid.major.y = element_line(),
-            panel.grid.major.x = element_line(linewidth = 0.5),
-            panel.grid.minor.y = element_line(linewidth = 0.5)
-        ) +
-        labs(x = NULL, y = "Seconds per iteration", fill = NULL)
+        my_theme +
+        labs(x = NULL, y = "Seconds per iteration", fill = NULL) +
+        scale_fill_brewer(palette = "Dark2")
 
     return(runtime_plot)
 }

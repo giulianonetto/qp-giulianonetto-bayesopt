@@ -22,20 +22,29 @@ def run_qp5_python(n_runs: Optional[int], n_trials: Optional[int], output_dir: O
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    results_gap, results_runtime = [], []
-    for acquisition in ["ei", "kg", "pes"]:
-        for objective in ["h6", "gp", "shu"]:
-            msg = f"Running BoTorch simulation for acquisition={acquisition}, objective={objective}."
-            print(msg)
-            result = get_setting_result(acquisition=acquisition, objective=objective, n_runs=n_runs, n_trials=n_trials)
-            results_gap.extend(result["gap"])
-            results_runtime.extend(result["runtime"])
-    
-    print("Saving BoTorch results.")
-    results_gap = pd.DataFrame(results_gap)
-    results_gap.to_csv(output_dir.joinpath("results_botorch_gap.tsv"), sep="\t", index=False)
-    results_runtime = pd.DataFrame(results_runtime)
-    results_runtime.to_csv(output_dir.joinpath("results_botorch_runtime.tsv"), sep="\t", index=False)
+    botorch_gap_results_file = output_dir.joinpath("results_botorch_gap.tsv")
+    botorch_runtime_results_file = output_dir.joinpath("results_botorch_runtime.tsv")
+
+    results_exist = botorch_gap_results_file.exists() and botorch_runtime_results_file.exists()
+
+    if not results_exist:
+
+        results_gap, results_runtime = [], []
+        for acquisition in ["ei", "kg", "pes"]:
+            for objective in ["h6", "gp", "shu"]:
+                msg = f"Running BoTorch simulation for acquisition={acquisition}, objective={objective}."
+                print(msg)
+                result = get_setting_result(acquisition=acquisition, objective=objective, n_runs=n_runs, n_trials=n_trials)
+                results_gap.extend(result["gap"])
+                results_runtime.extend(result["runtime"])
+        
+        print("Saving BoTorch results.")
+        results_gap = pd.DataFrame(results_gap)
+        results_gap.to_csv(botorch_gap_results_file, sep="\t", index=False)
+        results_runtime = pd.DataFrame(results_runtime)
+        results_runtime.to_csv(botorch_runtime_results_file, sep="\t", index=False)
+    else:
+        print(f"Skipping BoTorch simulation as results already exist in output_dir: {output_dir}.")
 
 
 args = """ Run all python-based analyses (except plotting, which is done in R)
