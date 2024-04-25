@@ -49,7 +49,7 @@ plot_gap_results <- function(output_dir) {
         parse_labels() %>%
         # TODO: remove once you have actual data
         mutate(
-            gap_estimate = trial / 9 + rnorm(180, sd = .05),
+            gap_estimate = trial / max(trial) + rnorm(nrow(.), sd = .05),
             gap_se = 0.05
         )
 
