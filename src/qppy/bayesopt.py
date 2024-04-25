@@ -2,6 +2,7 @@ import warnings
 import torch
 import time
 from botorch.test_functions import Hartmann
+from gpytorch.likelihoods.noise_models import NumericalWarning
 from .test_functions import StandardizedGoldsteinPrice, StandardizedHartman4
 from botorch.models.gp_regression import SingleTaskGP
 from botorch.models.transforms.outcome import Standardize
@@ -60,11 +61,12 @@ def get_acquisition_function(model, best_f, acquisition_name: str):
 def compute_gap(incumbent, initial_f, global_optimum):
     return ((incumbent - initial_f) / (global_optimum - initial_f)).item()
 
-def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, random_x: bool = False, verbose: bool = False):
+def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, random_x: bool = False, initial_n: int = 1, verbose: bool = False):
     warnings.filterwarnings("ignore", category=UserWarning)
+    warnings.filterwarnings("ignore", category=NumericalWarning)
     model = None
     objective_function = get_objective_function(name=objective_name)
-    input_data, observed_f, best_value = generate_initial_data(n=2, objective_function=objective_function)
+    input_data, observed_f, best_value = generate_initial_data(n=initial_n, objective_function=objective_function)
     best_values = [best_value]
     gaps = torch.zeros(n_trials)
     t0 = time.monotonic()
