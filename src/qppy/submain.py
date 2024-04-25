@@ -31,11 +31,11 @@ def run_qp5_python(n_runs: Optional[int], n_trials: Optional[int], output_dir: O
     if not results_exist:
 
         results_gap, results_runtime = [], []
-        for acquisition in ["ei", "kg", "pes"]:
-            for objective in ["h6", "gp", "shu"]:
+        for acquisition_name in ["ei", "kg", "pes"]:
+            for objective_name in ["h6", "gp"]:
                 msg = f"Running BoTorch simulation for acquisition={acquisition}, objective={objective}."
                 print(msg)
-                result = get_setting_result(acquisition=acquisition, objective=objective, n_runs=n_runs, n_trials=n_trials)
+                result = get_setting_result(acquisition_name=acquisition_name, objective_name=objective_name, n_runs=n_runs, n_trials=n_trials)
                 results_gap.extend(result["gap"])
                 results_runtime.extend(result["runtime"])
         
