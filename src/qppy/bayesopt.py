@@ -8,7 +8,8 @@ from botorch.models.gp_regression import SingleTaskGP
 from botorch.models.transforms.outcome import Standardize
 from gpytorch.mlls import ExactMarginalLogLikelihood
 from botorch.optim import optimize_acqf
-from botorch.acquisition.analytic import ExpectedImprovement
+from botorch.acquisition import ExpectedImprovement, qKnowledgeGradient
+from botorch.acquisition.analytic import LogProbabilityOfImprovement
 from botorch import fit_gpytorch_mll
 
 def get_objective_function(name: str = "h6"):
@@ -27,8 +28,7 @@ def generate_initial_data(objective_function, n: int = 10):
     # generate training data
     input_data = torch.rand(n, objective_function.dim, device="cpu", dtype=torch.double)
     observed_f = objective_function(input_data).unsqueeze(-1)
-    best_observed_value = observed_f.max().item()
-    return input_data, observed_f, best_observed_value
+    return input_data, observed_f
 
     
 def initialize_model(input_data, observed_f, state_dict=None):
@@ -51,6 +51,10 @@ def initialize_model(input_data, observed_f, state_dict=None):
 def get_acquisition_function(model, best_f, acquisition_name: str):
     if acquisition_name == "ei":
         _acquisition_function = ExpectedImprovement(model=model, best_f=best_f)
+    elif acquisition_name == "kg":
+        _acquisition_function = qKnowledgeGradient(model=model, num_fantasies=128)
+    elif acquisition_name == "lpi":
+        _acquisition_function = LogProbabilityOfImprovement(model=model, best_f=best_f)
     else:
         raise NotImplementedError("Only EI acquisition implemented so far :(")
 
@@ -62,37 +66,44 @@ def compute_gap(incumbent, initial_f, global_optimum):
 def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, random_x: bool = False, initial_n: int = 1, verbose: bool = False):
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=NumericalWarning)
-    model = None
+    model, state_dict = None, None
     objective_function = get_objective_function(name=objective_name)
-    input_data, observed_f, best_value = generate_initial_data(n=initial_n, objective_function=objective_function)
-    best_values = [best_value]
+    input_data, observed_f = generate_initial_data(n=initial_n, objective_function=objective_function)
     gaps = torch.zeros(n_trials)
     t0 = time.monotonic()
     for trial in range(n_trials):
-        # get marginal log-lklh and model with current data
-        mll, model = initialize_model(
-            input_data=input_data,
-            observed_f=observed_f,
-            state_dict=model.state_dict() if model else None
-        )
-        # fit model
-        fit_gpytorch_mll(mll)
-        # update acquisition function definition with best f so far
-        acquisition_function = get_acquisition_function(
-            acquisition_name=acquisition_name,
-            model=model,
-            best_f=observed_f.max().item()
-        )
-        # optimize acquisition function to get new x
         if random_x:
-            new_x = torch.rand(1, objective_function.dim)
+            # baseline: don't use BayesOpt at all, just sample x uniformly at random
+            new_x = (objective_function.bounds[0] - objective_function.bounds[1]) * torch.rand(1, objective_function.dim) + objective_function.bounds[1]
         else:
+            # get marginal log-lklh and model with current data
+            if model:
+                state_dict = model.state_dict()
+
+            mll, model = initialize_model(
+                input_data=input_data,
+                observed_f=observed_f,
+                state_dict=state_dict
+            )
+            # fit model
+            fit_gpytorch_mll(mll)
+            # update acquisition function definition with best f so far
+            acquisition_function = get_acquisition_function(
+                acquisition_name=acquisition_name,
+                model=model,
+                best_f=observed_f.max().item()
+            )
+            num_restarts, raw_samples = 1, 1
+            if acquisition_name in ["kg"]:
+                num_restarts, raw_samples = 10, 512
+
+            # optimize acquisition function to get new x
             candidate, _ = optimize_acqf(
                 acq_function=acquisition_function,
                 bounds=objective_function.bounds,
                 q=1,
-                num_restarts=1,
-                raw_samples=1,
+                num_restarts=num_restarts,
+                raw_samples=raw_samples,
                 options={"maxiter": 200}
             )
             new_x = candidate.detach()
@@ -105,7 +116,6 @@ def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100,
 
         # check incumbent (best value so far)
         incumbent = observed_f.max().item()
-        best_x = input_data[torch.argmax(observed_f), :]
         
         if verbose:
             msg = f"Trial {trial}, current f={new_obj.item():>4.5}, best f={incumbent:>4.5}"

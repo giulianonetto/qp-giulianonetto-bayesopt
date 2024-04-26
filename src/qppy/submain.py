@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from simulation import get_setting_result
+from .simulation import get_setting_result
 from typing import Optional
 from docopt import docopt
 from pathlib import Path
@@ -31,9 +31,9 @@ def run_qp5_python(n_runs: Optional[int], n_trials: Optional[int], output_dir: O
     if not results_exist:
 
         results_gap, results_runtime = [], []
-        for acquisition_name in ["ei", "kg", "pes"]:
-            for objective_name in ["h6", "gp"]:
-                msg = f"Running BoTorch simulation for acquisition={acquisition}, objective={objective}."
+        for acquisition_name in ["ei", "kg", "lpi"]:
+            for objective_name in ["h6", "gp", "ros"]:
+                msg = f"Running BoTorch simulation for acquisition={acquisition_name}, objective={objective_name}."
                 print(msg)
                 result = get_setting_result(acquisition_name=acquisition_name, objective_name=objective_name, n_runs=n_runs, n_trials=n_trials)
                 results_gap.extend(result["gap"])

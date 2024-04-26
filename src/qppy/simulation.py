@@ -49,16 +49,3 @@ def get_setting_result(acquisition_name: str, objective_name: str, n_runs: int, 
     )
 
     return dict(gap=gap_results.to_dict(orient='records'), runtime=runtime_results)
-
-# def run_botorch(acquisition: str, objective: str, n_trials: int) -> list[dict]:
-#     gap_result = []
-#     for i in range(n_trials):
-#         gap_result.append(
-#             dict(
-#                 acquisition=acquisition, objective=objective,
-#                 trial=i,
-#                 gap_estimate=1, gap_se=1,
-#                 objetive_estimate=1, objetive_se=1,
-#                 implementation="BoTorch"
-#             )
-#         )
