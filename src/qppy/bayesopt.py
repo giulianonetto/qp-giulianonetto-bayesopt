@@ -3,6 +3,7 @@ import torch
 import time
 from botorch.test_functions import Hartmann
 from gpytorch.likelihoods.noise_models import NumericalWarning
+from botorch.exceptions import BadInitialCandidatesWarning
 from .test_functions import *
 from botorch.models.gp_regression import SingleTaskGP
 from botorch.models.transforms.outcome import Standardize
