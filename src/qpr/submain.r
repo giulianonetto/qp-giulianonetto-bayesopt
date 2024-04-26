@@ -26,7 +26,7 @@ run_qp5_r <- function(n_runs = NULL, n_trials = NULL, output_dir = NULL) {
     if (isFALSE(results_exist)) {
         # run BayesOpt simulation with DiceOptim
         acquisitions <- c("ei", "kg", "pes")
-        objectives <- c("h6", "gp", "shu")
+        objectives <- c("h6", "gp", "ros")
         results_runtime <- results_gap <- vector("list", length = length(acquisitions) * length(objectives))
         counter <- 1
         for (i in seq_along(acquisitions)) {

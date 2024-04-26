@@ -79,3 +79,29 @@ class StandardizedHartman4(SyntheticTestFunction):
             fs[k] = (-(c * torch.exp(-d)).sum() - m) / s
 
         return fs
+
+class StandardizedRosenbrock4(SyntheticTestFunction):
+    r"""Rosenbrock 4D test function.
+
+    Implementation from `DiceOptim::rosenbrock4` (in R).
+    """
+
+    dim = 4
+    _bounds = [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0)]
+    _optimal_value = -1.019701
+    _optimizers = [(0.4, 0.4, 0.4, 0.4)]
+     
+    def evaluate_true(self, X: Tensor) -> Tensor:
+        assert X.dim() == 2, "Must be tensor of dim=2"
+        m = 382658.057227524
+        s = 375264.858362295
+        n_inputs = X.shape[0]
+        fs = torch.zeros(n_inputs, dtype=torch.double)
+        for i, x in enumerate(X):
+            x = 15 * x - 5
+            x1 = x[:3]
+            x2 = x[1:4]
+            f = (100 * (x2 - x1**2)**2 + (1 - x1)**2).sum()
+            fs[i] = (f - m) / s
+
+        return fs

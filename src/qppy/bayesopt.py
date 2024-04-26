@@ -3,7 +3,7 @@ import torch
 import time
 from botorch.test_functions import Hartmann
 from gpytorch.likelihoods.noise_models import NumericalWarning
-from .test_functions import StandardizedGoldsteinPrice, StandardizedHartman4
+from .test_functions import *
 from botorch.models.gp_regression import SingleTaskGP
 from botorch.models.transforms.outcome import Standardize
 from gpytorch.mlls import ExactMarginalLogLikelihood
@@ -11,15 +11,13 @@ from botorch.optim import optimize_acqf
 from botorch.acquisition.analytic import ExpectedImprovement
 from botorch import fit_gpytorch_mll
 
-warnings.filterwarnings("ignore", category=UserWarning)
-
 def get_objective_function(name: str = "h6"):
     if name == "h6":
         _objective_function = StandardizedHartman4(negate=True)
     elif name == "gp":
         _objective_function = StandardizedGoldsteinPrice(negate=True)
-    elif name == "br":
-        raise NotImplementedError("Branin test function not implemented yet")
+    elif name == "ros":
+        _objective_function = StandardizedRosenbrock4(negate=True)
     else:
         raise ValueError(f"Invalid objective function name: {name}")
 

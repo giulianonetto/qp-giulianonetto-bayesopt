@@ -5,8 +5,8 @@ parse_labels <- function(.df) {
         mutate(
             objective = factor(
                 as.character(objective),
-                levels = c("h6", "gp", "shu"),
-                labels = c("Goldstein–Price", "Hartman 6", "Shubert")
+                levels = c("h6", "gp", "ros"),
+                labels = c("Goldstein–Price", "Hartman 6", "Rosenbrock 4")
             ),
             acquisition_abbrev = factor(
                 as.character(acquisition),
