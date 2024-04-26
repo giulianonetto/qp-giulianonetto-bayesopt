@@ -2,6 +2,8 @@ from botorch.test_functions.synthetic import SyntheticTestFunction
 from torch import Tensor, log
 import torch
 
+# TODO: implement H6
+
 class StandardizedGoldsteinPrice(SyntheticTestFunction):
     r"""GoldsteinPrice test function.
 

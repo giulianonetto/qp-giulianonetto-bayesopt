@@ -30,11 +30,16 @@ run_qp5_r <- function(n_runs = NULL, n_trials = NULL, output_dir = NULL) {
         results_runtime <- results_gap <- vector("list", length = length(acquisitions) * length(objectives))
         counter <- 1
         for (i in seq_along(acquisitions)) {
-            acquisition <- acquisitions[i]
+            acquisition_name <- acquisitions[i]
             for (j in seq_along(objectives)) {
-                objective <- objectives[j]
-                rlang::inform(str_glue("Running DiceOptim simulation for acquisition={acquisition}, objective={objective}."))
-                result <- get_setting_result(acquisition = acquisition, objective = objective, n_runs = n_runs, n_trials = n_trials)
+                objective_name <- objectives[j]
+                rlang::inform(str_glue("Running DiceOptim simulation for acquisition={acquisition_name}, objective={objective_name}."))
+                result <- get_setting_result(
+                    acquisition_name = acquisition_name, 
+                    objective_name = objective_name,
+                    n_runs = n_runs,
+                    n_trials = n_trials
+                )
                 results_gap[[counter]] <- result[["gap"]]
                 results_runtime[[counter]] <- result[["runtime"]]
                 counter <- counter + 1

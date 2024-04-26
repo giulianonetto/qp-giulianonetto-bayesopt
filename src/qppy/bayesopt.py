@@ -1,7 +1,7 @@
 import warnings
 import torch
 import time
-from botorch.test_functions import Hartmann
+from typing import Optional
 from gpytorch.likelihoods.noise_models import NumericalWarning
 from botorch.exceptions import BadInitialCandidatesWarning
 from .test_functions import *
@@ -113,13 +113,16 @@ def get_acquisition_function(model, best_f, acquisition_name: str):
 def compute_gap(incumbent, initial_f, global_optimum):
     return ((incumbent - initial_f) / (global_optimum - initial_f)).item()
 
-def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, initial_n: int = 1, verbose: bool = False):
+def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, initial_n: Optional[int] = None, verbose: bool = False):
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=NumericalWarning)
     warnings.filterwarnings("ignore", category=BadInitialCandidatesWarning)
     model, state_dict = None, None
     objective_function = get_objective_function(name=objective_name)
-    input_data, observed_f = generate_initial_data(n=initial_n, objective_function=objective_function)
+    input_data, observed_f = generate_initial_data(
+        n=initial_n if initial_n else torch.floor(torch.tensor(0.2 * n_trials)).int().item(),
+        objective_function=objective_function
+    )
     gaps = torch.zeros(n_trials)
     t0 = time.monotonic()
     for trial in range(n_trials):
