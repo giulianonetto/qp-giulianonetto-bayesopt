@@ -2,24 +2,7 @@ suppressPackageStartupMessages({
     library(tidyverse, warn.conflicts = FALSE)
 })
 import::from("src/qpr/bayesopt.r", get_setting_result)
-import::from("src/qpr/plotting_results.r", plot_gap_results, plot_runtime_results, parse_labels)
-
-plot_results <- function(output_dir) {
-    rlang::inform("Plotting all results.")
-    gap_plot <- plot_gap_results(output_dir = output_dir)
-    ggsave(
-        file.path(output_dir, "gap_results.png"),
-        gap_plot,
-        dpi = 600, width = 15, height = 7.5
-    )
-
-    runtime_plot <- plot_runtime_results(output_dir = output_dir)
-    ggsave(
-        file.path(output_dir, "runtime_results.png"),
-        runtime_plot,
-        dpi = 600, width = 15, height = 5.5
-    )
-}
+import::from("src/qpr/plotting_results.r", plot_results)
 
 run_qp5_r <- function(n_runs = NULL, n_trials = NULL, output_dir = NULL) {
     if (isFALSE(is.null(n_runs))) {

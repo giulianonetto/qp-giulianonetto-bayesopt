@@ -153,3 +153,20 @@ plot_runtime_results <- function(output_dir) {
 
     return(runtime_plot)
 }
+
+plot_results <- function(output_dir) {
+    rlang::inform("Plotting all results.")
+    gap_plot <- plot_gap_results(output_dir = output_dir)
+    ggsave(
+        file.path(output_dir, "gap_results.png"),
+        gap_plot,
+        dpi = 600, width = 15, height = 7.5
+    )
+
+    runtime_plot <- plot_runtime_results(output_dir = output_dir)
+    ggsave(
+        file.path(output_dir, "runtime_results.png"),
+        runtime_plot,
+        dpi = 600, width = 15, height = 5.5
+    )
+}
