@@ -282,3 +282,5 @@ TSWLatexianTemp*
 __pycache__
 README_files
 README.html
+output-botorch*
+output-diceoptim*

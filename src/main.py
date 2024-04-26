@@ -29,7 +29,7 @@ if __name__ == '__main__':
     output_dir = arguments["--output_dir"]
 
     # build R command
-    cmd_r_pipeline = ["Rscript", "src/qpr/submain.r"]
+    cmd_r_pipeline = ["Rscript", "src/qpr/pipeline.r"]
 
     # add arguments if present
     if n_runs:

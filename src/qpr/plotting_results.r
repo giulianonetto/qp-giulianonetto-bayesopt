@@ -5,8 +5,8 @@ parse_labels <- function(.df) {
         mutate(
             objective = factor(
                 as.character(objective),
-                levels = c("h6", "gp", "ros"),
-                labels = c("Goldstein–Price", "Hartman 6", "Rosenbrock 4")
+                levels = c("h6", "ros", "gp"),
+                labels = c("Hartman 6", "Rosenbrock 4", "Goldstein–Price")
             ),
             acquisition_abbrev = factor(
                 as.character(acquisition),
@@ -64,11 +64,11 @@ plot_gap_results <- function(output_dir) {
             )
         ) +
         geom_ribbon(
-            aes(fill = objective, group = objective),
+            aes(fill = acquisition, group = acquisition),
             alpha = 0.3
         ) +
-        geom_line(aes(color = objective, group = objective), linewidth = 1) +
-        facet_grid(rows = vars(implementation), cols = vars(acquisition)) +
+        geom_line(aes(color = acquisition, group = acquisition), linewidth = 1) +
+        facet_grid(rows = vars(implementation), cols = vars(objective)) +
         labs(
             x = "Iteration",
             y = "Gap",
