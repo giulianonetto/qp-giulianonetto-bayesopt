@@ -38,7 +38,7 @@ def run_qp5_python(n_runs: Optional[int], n_trials: Optional[int], output_dir: O
                 print(msg)
                 t0 = time.monotonic()
                 result = get_setting_result(acquisition_name=acquisition_name, objective_name=objective_name, n_runs=n_runs, n_trials=n_trials)
-                print(f"Took {time.monotonic() - t0:1.1} seconds")
+                print(f"Took {time.monotonic() - t0:>4.4} seconds")
                 results_gap.extend(result["gap"])
                 results_runtime.extend(result["runtime"])
         

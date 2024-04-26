@@ -71,7 +71,7 @@ plot_gap_results <- function(output_dir) {
         facet_grid(rows = vars(implementation), cols = vars(objective)) +
         labs(
             x = "Iteration",
-            y = "Gap",
+            y = "Mean Gap",
             color = NULL,
             fill = NULL
         ) +

@@ -113,7 +113,7 @@ def get_acquisition_function(model, best_f, acquisition_name: str):
 def compute_gap(incumbent, initial_f, global_optimum):
     return ((incumbent - initial_f) / (global_optimum - initial_f)).item()
 
-def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, random_x: bool = False, initial_n: int = 1, verbose: bool = False):
+def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, initial_n: int = 1, verbose: bool = False):
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=NumericalWarning)
     warnings.filterwarnings("ignore", category=BadInitialCandidatesWarning)
@@ -123,7 +123,7 @@ def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100,
     gaps = torch.zeros(n_trials)
     t0 = time.monotonic()
     for trial in range(n_trials):
-        if random_x:
+        if acquisition_name == "random":
             # baseline: don't use BayesOpt at all, just sample x uniformly at random
             new_x = (objective_function.bounds[0] - objective_function.bounds[1]) * torch.rand(1, objective_function.dim) + objective_function.bounds[1]
         else:
