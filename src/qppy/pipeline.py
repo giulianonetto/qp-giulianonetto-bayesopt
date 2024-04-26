@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-
-from .simulation import get_setting_result
+import os
+import time
+from .bayesopt import get_setting_result
 from typing import Optional
 from docopt import docopt
 from pathlib import Path
@@ -35,7 +36,9 @@ def run_qp5_python(n_runs: Optional[int], n_trials: Optional[int], output_dir: O
             for objective_name in ["h6", "gp", "ros"]:
                 msg = f"Running BoTorch simulation for acquisition={acquisition_name}, objective={objective_name}."
                 print(msg)
+                t0 = time.monotonic()
                 result = get_setting_result(acquisition_name=acquisition_name, objective_name=objective_name, n_runs=n_runs, n_trials=n_trials)
+                print(f"Took{time.monotonic() - t0:1} seconds")
                 results_gap.extend(result["gap"])
                 results_runtime.extend(result["runtime"])
         
@@ -46,30 +49,3 @@ def run_qp5_python(n_runs: Optional[int], n_trials: Optional[int], output_dir: O
         results_runtime.to_csv(botorch_runtime_results_file, sep="\t", index=False)
     else:
         print(f"Skipping BoTorch simulation as results already exist in output_dir: {output_dir}.")
-
-
-args = """ Run all python-based analyses (except plotting, which is done in R)
-        Usage:
-          main [--n_runs=<value>] [--n_trials=<value>] [--output_dir=<value>]
-          main (-h | --help)
-          main --version
-        
-        Optional arguments:
-
-          -h --help                 Show this screen.
-          --version                 Show version.
-          
-          --n_runs=<value>          Integer specifying number of simulation runs. Defaults to 2.
-          --n_trials=<value>        Integer specifying number of BO trials. Defaults to 10.
-          --output_dir=<value>      Path to output directory. Defaults is `output`.
-"""
-
-if __name__ == '__main__':
-    arguments = docopt(args)
-
-    # run all analyses
-    run_qp5_python(
-        n_runs=arguments.get("--n_runs"),
-        n_trials=arguments.get("--n_trials"),
-        output_dir=arguments.get("--output_dir")
-    )

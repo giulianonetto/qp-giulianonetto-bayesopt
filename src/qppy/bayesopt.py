@@ -11,6 +11,55 @@ from botorch.optim import optimize_acqf
 from botorch.acquisition import ExpectedImprovement, qKnowledgeGradient
 from botorch.acquisition.analytic import LogProbabilityOfImprovement
 from botorch import fit_gpytorch_mll
+import numpy as np
+import pandas as pd
+
+
+def get_setting_result(acquisition_name: str, objective_name: str, n_runs: int, n_trials: int) -> dict[list[dict]]:
+    """
+    Returns dict(gap=x, runtime=y), where x is list of dicts for gap results and y likewise for runtime
+    """
+
+    gap_results, runtime_results = [], []
+    for run_id in range(n_runs):
+        t0 = time.monotonic()
+        gaps = run_botorch(acquisition_name=acquisition_name, objective_name=objective_name, n_trials=n_trials)
+        t1 = time.monotonic()
+        gap_results.extend([dict(run_id=run_id, trial=i, gaps=gaps[i].item()) for i in range(n_trials)])
+        runtime_result = dict(
+            acquisition=acquisition_name,
+            objective=objective_name,
+            run_id=run_id,
+            time_per_iteration=(t1 - t0) / n_trials,
+            implementation="BoTorch"
+        )
+        runtime_results.append(runtime_result)
+    
+    # summarise gap by trial id
+    def gap_estimate(x):
+        return x.mean()
+    def gap_se(x):
+        return np.std(x) / np.sqrt(len(x))
+
+    gap_results = (
+        pd.DataFrame(gap_results)
+        .groupby("trial")
+        .aggregate({"gaps": [gap_estimate, gap_se]})
+        .droplevel(0, axis="columns")
+        .reset_index()
+    )
+
+    gap_results.insert(
+        0, "acquisition", acquisition_name
+    )
+    gap_results.insert(
+        0, "objective", objective_name
+    )
+    gap_results.insert(
+        0, "implementation", "BoTorch"
+    )
+
+    return dict(gap=gap_results.to_dict(orient='records'), runtime=runtime_results)
 
 def get_objective_function(name: str = "h6"):
     if name == "h6":
@@ -66,6 +115,7 @@ def compute_gap(incumbent, initial_f, global_optimum):
 def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, random_x: bool = False, initial_n: int = 1, verbose: bool = False):
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=NumericalWarning)
+    warnings.filterwarnings("ignore", category=BadInitialCandidatesWarning)
     model, state_dict = None, None
     objective_function = get_objective_function(name=objective_name)
     input_data, observed_f = generate_initial_data(n=initial_n, objective_function=objective_function)
@@ -93,17 +143,14 @@ def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100,
                 model=model,
                 best_f=observed_f.max().item()
             )
-            num_restarts, raw_samples = 1, 1
-            if acquisition_name in ["kg"]:
-                num_restarts, raw_samples = 10, 512
-
+            
             # optimize acquisition function to get new x
             candidate, _ = optimize_acqf(
                 acq_function=acquisition_function,
                 bounds=objective_function.bounds,
                 q=1,
-                num_restarts=num_restarts,
-                raw_samples=raw_samples,
+                num_restarts=1 if acquisition_name == "kg" else 1,
+                raw_samples=512,
                 options={"maxiter": 200}
             )
             new_x = candidate.detach()

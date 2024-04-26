@@ -10,20 +10,20 @@ parse_labels <- function(.df) {
             ),
             acquisition_abbrev = factor(
                 as.character(acquisition),
-                levels = c("ei", "kg", "pes"),
+                levels = c("ei", "kg", "lpi"),
                 labels = c(
                     "EI",
                     "KG",
-                    "PES"
+                    "LPI"
                 )
             ),
             acquisition = factor(
                 as.character(acquisition),
-                levels = c("ei", "kg", "pes"),
+                levels = c("ei", "kg", "lpi"),
                 labels = c(
                     "Expected Improvement",
                     "Knowledge Gradient",
-                    "Pred. Entropy Search"
+                    "Log Prob. of Improvement"
                 )
             )
         )
@@ -49,8 +49,8 @@ plot_gap_results <- function(output_dir) {
         parse_labels() %>%
         # TODO: remove once you have actual data
         mutate(
-            gap_estimate = trial / max(trial) + rnorm(nrow(.), sd = .05),
-            gap_se = 0.05
+            gap_estimate = ifelse(implementation == "DiceOptim", trial / max(trial) + rnorm(nrow(.), sd = .05), gap_estimate),
+            gap_se = ifelse(implementation == "DiceOptim", 0.05, gap_se)
         )
 
 
@@ -111,7 +111,7 @@ plot_runtime_results <- function(output_dir) {
         parse_labels() %>%
         # TODO: remove once you have actual data
         mutate(
-            time_per_iteration = rpois(nrow(.), 100)
+            time_per_iteration = ifelse(implementation == "DiceOptim", rpois(nrow(.), mean(time_per_iteration)), time_per_iteration)
         )
 
     newer_ggplot2 <- as.logical(compareVersion(as.character(packageVersion("ggplot2")), "3.4.4"))
