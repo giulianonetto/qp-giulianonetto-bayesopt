@@ -139,7 +139,7 @@ plot_runtime_results <- function(output_dir) {
         ) +
         facet_wrap(~objective) +
         theme_classic(base_size = 20) +
-        scale_y_log10() +
+        scale_y_log10(breaks = c(0.001, 0.01, 0.1, 1, 5)) +
         my_theme +
         labs(x = NULL, y = "Seconds per iteration", fill = NULL) +
         scale_fill_brewer(palette = "Dark2")
