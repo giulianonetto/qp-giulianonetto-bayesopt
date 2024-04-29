@@ -24,7 +24,12 @@ def get_setting_result(acquisition_name: str, objective_name: str, n_runs: int, 
     gap_results, runtime_results = [], []
     for run_id in range(n_runs):
         t0 = time.monotonic()
-        gaps = run_botorch(acquisition_name=acquisition_name, objective_name=objective_name, n_trials=n_trials)
+        gaps = run_botorch(
+            acquisition_name=acquisition_name,
+            objective_name=objective_name,
+            n_trials=n_trials,
+            initial_n=5
+        )
         t1 = time.monotonic()
         gap_results.extend([dict(run_id=run_id, trial=i, gaps=gaps[i].item()) for i in range(n_trials)])
         runtime_result = dict(
@@ -64,7 +69,7 @@ def get_setting_result(acquisition_name: str, objective_name: str, n_runs: int, 
 
 def get_objective_function(name: str = "h6"):
     if name == "h6":
-        _objective_function = StandardizedHartman4(negate=True)
+        _objective_function = StandardizedHartman6(negate=True)
     elif name == "gp":
         _objective_function = StandardizedGoldsteinPrice(negate=True)
     elif name == "ros":
@@ -111,36 +116,40 @@ def get_acquisition_function(model, best_f, acquisition_name: str):
     return _acquisition_function
 
 def compute_gap(incumbent, initial_f, global_optimum):
-    return ((incumbent - initial_f) / (global_optimum - initial_f)).item()
+    return ((incumbent - initial_f) / (global_optimum - initial_f))
 
-def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, initial_n: Optional[int] = None, verbose: bool = False):
+def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, initial_n: int = 5, verbose: bool = False):
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=NumericalWarning)
     warnings.filterwarnings("ignore", category=BadInitialCandidatesWarning)
-    model, state_dict = None, None
     objective_function = get_objective_function(name=objective_name)
+
+    # initialize dataset
     input_data, observed_f = generate_initial_data(
-        n=initial_n if initial_n else torch.floor(torch.tensor(0.2 * n_trials)).int().item(),
+        n=initial_n,
         objective_function=objective_function
     )
+    # initialize gaps and record initial gap
     gaps = torch.zeros(n_trials)
+    gaps[0] = compute_gap(  # initial GAP is zero
+        incumbent=observed_f.max().item(),
+        initial_f=observed_f[0].item(),
+        global_optimum=objective_function.optimal_value
+    )
+
+    # fit initial model
+    mll, model = initialize_model(
+        input_data=input_data,
+        observed_f=observed_f
+    )
+    fit_gpytorch_mll(mll)
+
     t0 = time.monotonic()
-    for trial in range(n_trials):
+    for trial in range(1, n_trials):
         if acquisition_name == "random":
             # baseline: don't use BayesOpt at all, just sample x uniformly at random
             new_x = (objective_function.bounds[0] - objective_function.bounds[1]) * torch.rand(1, objective_function.dim) + objective_function.bounds[1]
         else:
-            # get marginal log-lklh and model with current data
-            if model:
-                state_dict = model.state_dict()
-
-            mll, model = initialize_model(
-                input_data=input_data,
-                observed_f=observed_f,
-                state_dict=state_dict
-            )
-            # fit model
-            fit_gpytorch_mll(mll)
             # update acquisition function definition with best f so far
             acquisition_function = get_acquisition_function(
                 acquisition_name=acquisition_name,
@@ -153,7 +162,7 @@ def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100,
                 acq_function=acquisition_function,
                 bounds=objective_function.bounds,
                 q=1,
-                num_restarts=1 if acquisition_name == "kg" else 1,
+                num_restarts=1,
                 raw_samples=512,
                 options={"maxiter": 200}
             )
@@ -167,16 +176,21 @@ def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100,
 
         # check incumbent (best value so far)
         incumbent = observed_f.max().item()
-        
-        if verbose:
-            msg = f"Trial {trial}, current f={new_obj.item():>4.5}, best f={incumbent:>4.5}"
-            print(msg)
-        
+               
+        # record gap
         gaps[trial] = compute_gap(
             incumbent=incumbent,
             initial_f=observed_f[0],
             global_optimum=objective_function.optimal_value
         )
+        # fit new model with current data
+        mll, model = initialize_model(
+            input_data=input_data,
+            observed_f=observed_f,
+            state_dict=model.state_dict()
+        )
+        fit_gpytorch_mll(mll)
+        
 
     t1 = time.monotonic()
     if verbose:

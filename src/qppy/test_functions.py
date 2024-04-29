@@ -82,6 +82,56 @@ class StandardizedHartman4(SyntheticTestFunction):
 
         return fs
 
+
+class StandardizedHartman6(SyntheticTestFunction):
+    r"""Hartman 6 test function.
+
+    Implementation from `DiceKriging::hartman6` (in R).
+    """
+
+    dim = 6
+    _bounds = [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0)]
+    _optimal_value = -3.322368
+    _optimizers = [(0.20168952, 0.15001069, 0.47687398, 0.27533243, 0.31165162, 0.65730054)]
+     
+    def evaluate_true(self, X: Tensor) -> Tensor:
+
+        assert X.dim() == 2, "Must be tensor of dim=2"
+
+        a = torch.tensor(
+            [
+                [10.0, 0.05, 3.0, 17.0],
+                [3.0, 10.0, 3.5, 8.0],
+                [17.0, 17.0, 1.7, 0.05],
+                [3.5, 0.1, 10.0, 10.0],
+                [1.7, 8.0, 17.0, 0.1],
+                [8.0, 14.0, 8.0, 14.0]
+            ]
+        )
+        p = torch.tensor(
+            [
+                [0.1312, 0.2329, 0.2348, 0.4047],
+                [0.1696, 0.4135, 0.1451, 0.8828],
+                [0.5569, 0.8307, 0.3522, 0.8732],
+                [0.0124, 0.3736, 0.2883, 0.5743],
+                [0.8283, 0.1004, 0.3047, 0.1091], 
+                [0.5886, 0.9991, 0.665, 0.0381]  
+            ]
+        )
+        c = torch.tensor([1.0, 1.2, 3.0, 3.2])
+
+        n_inputs = X.shape[0]
+        fs = torch.zeros(n_inputs, dtype=torch.double)
+        for k, x in enumerate(X):
+            d = torch.zeros(4, dtype=torch.double)
+            for i in range(4):
+                d[i] = (a[..., i] * (x - p[..., i]) ** 2).sum()
+
+            fs[k] = -(c * torch.exp(-d)).sum()
+
+        return fs
+
+
 class StandardizedRosenbrock4(SyntheticTestFunction):
     r"""Rosenbrock 4D test function.
 

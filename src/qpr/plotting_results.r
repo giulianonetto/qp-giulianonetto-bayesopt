@@ -10,20 +10,22 @@ parse_labels <- function(.df) {
             ),
             acquisition_abbrev = factor(
                 as.character(acquisition),
-                levels = c("ei", "kg", "lpi"),
+                levels = c("ei", "kg", "lpi", "random"),
                 labels = c(
                     "EI",
                     "KG",
-                    "LPI"
+                    "LPI",
+                    "Random"
                 )
             ),
             acquisition = factor(
                 as.character(acquisition),
-                levels = c("ei", "kg", "lpi"),
+                levels = c("ei", "kg", "lpi", "random"),
                 labels = c(
                     "Expected Improvement",
                     "Knowledge Gradient",
-                    "Log Prob. of Improvement"
+                    "Log Prob. of Improvement",
+                    "Random"
                 )
             )
         )
@@ -46,13 +48,7 @@ plot_gap_results <- function(output_dir) {
         read_tsv(botorch_gap, show_col_types = FALSE) %>% mutate(implementation = "BoTorch"),
         read_tsv(diceoptim_gap, show_col_types = FALSE) %>% mutate(implementation = "DiceOptim")
     ) %>%
-        parse_labels() %>%
-        # TODO: remove once you have actual data
-        mutate(
-            gap_estimate = ifelse(implementation == "DiceOptim", trial / max(trial) + rnorm(nrow(.), sd = .05), gap_estimate),
-            gap_se = ifelse(implementation == "DiceOptim", 0.05, gap_se)
-        )
-
+        parse_labels()
 
     gap_plot <- df %>%
         ggplot(
@@ -93,7 +89,7 @@ plot_gap_results <- function(output_dir) {
 
 plot_runtime_results <- function(output_dir) {
     botorch_runtime <- file.path(output_dir, "results_botorch_runtime.tsv")
-    diceoptim_runtime <- file.path(output_dir, "results_botorch_runtime.tsv")
+    diceoptim_runtime <- file.path(output_dir, "results_diceoptim_runtime.tsv")
 
     if (isFALSE(file.exists(botorch_runtime))) {
         msg <- stringr::str_glue("File not found (BoTorch runtime results): {botorch_runtime}")
@@ -108,18 +104,14 @@ plot_runtime_results <- function(output_dir) {
         read_tsv(botorch_runtime, show_col_types = FALSE) %>% mutate(implementation = "BoTorch"),
         read_tsv(diceoptim_runtime, show_col_types = FALSE) %>% mutate(implementation = "DiceOptim")
     ) %>%
-        parse_labels() %>%
-        # TODO: remove once you have actual data
-        mutate(
-            time_per_iteration = ifelse(implementation == "DiceOptim", rpois(nrow(.), mean(time_per_iteration)), time_per_iteration)
-        )
+        parse_labels()
 
     newer_ggplot2 <- as.logical(compareVersion(as.character(packageVersion("ggplot2")), "3.4.4"))
     if (isTRUE(newer_ggplot2)) {
         my_theme <- list(
             theme(
                 legend.position = "inside",
-                legend.position.inside = c(0.07, 0.9),
+                legend.position.inside = c(0.925, 0.85),
                 strip.text = element_text(face = "bold"),
                 panel.grid.major.y = element_line(),
                 panel.grid.major.x = element_line(linewidth = 0.5),
@@ -129,7 +121,7 @@ plot_runtime_results <- function(output_dir) {
     } else {
         my_theme <- list(
             theme(
-                legend.position = c(0.07, 0.9),
+                legend.position = c(0.925, 0.85),
                 strip.text = element_text(face = "bold"),
                 panel.grid.major.y = element_line(),
                 panel.grid.major.x = element_line(linewidth = 0.5),
@@ -147,6 +139,7 @@ plot_runtime_results <- function(output_dir) {
         ) +
         facet_wrap(~objective) +
         theme_classic(base_size = 20) +
+        scale_y_log10() +
         my_theme +
         labs(x = NULL, y = "Seconds per iteration", fill = NULL) +
         scale_fill_brewer(palette = "Dark2")
