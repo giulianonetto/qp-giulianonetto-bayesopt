@@ -284,3 +284,4 @@ README_files
 README.html
 output-botorch*
 output-diceoptim*
+output-[0-9]*

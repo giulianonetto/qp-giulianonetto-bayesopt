@@ -32,7 +32,7 @@ get_setting_result <- function(acquisition_name, objective_name, n_runs, n_trial
             acquisition_name = acquisition_name,
             objective_name = objective_name,
             n_trials = n_trials,
-            initial_n = 5
+            initial_n = 10
         )
         t1 <- Sys.time()
         gap_results[[run_id]] <- data.frame(
@@ -113,7 +113,7 @@ compute_gap <- function(
     )
 }
 
-run_diceoptim <- function(acquisition_name, objective_name, n_trials, initial_n = 5) {
+run_diceoptim <- function(acquisition_name, objective_name, n_trials, initial_n = 10) {
     if (isFALSE(acquisition_name %in% c("random", "ei", "kg"))) {
         msg <- stringr::str_glue("Invalid acquisition_name={acquisition_name}")
         rlang::abort(msg)

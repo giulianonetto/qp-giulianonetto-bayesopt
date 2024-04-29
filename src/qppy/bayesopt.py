@@ -28,7 +28,7 @@ def get_setting_result(acquisition_name: str, objective_name: str, n_runs: int, 
             acquisition_name=acquisition_name,
             objective_name=objective_name,
             n_trials=n_trials,
-            initial_n=5
+            initial_n=10
         )
         t1 = time.monotonic()
         gap_results.extend([dict(run_id=run_id, trial=i, gaps=gaps[i].item()) for i in range(n_trials)])
@@ -118,7 +118,7 @@ def get_acquisition_function(model, best_f, acquisition_name: str):
 def compute_gap(incumbent, initial_f, global_optimum):
     return ((incumbent - initial_f) / (global_optimum - initial_f))
 
-def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, initial_n: int = 5, verbose: bool = False):
+def run_botorch(acquisition_name: str, objective_name: str, n_trials: int = 100, initial_n: int = 10, verbose: bool = False):
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=NumericalWarning)
     warnings.filterwarnings("ignore", category=BadInitialCandidatesWarning)
