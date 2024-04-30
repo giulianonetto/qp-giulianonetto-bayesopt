@@ -13,8 +13,8 @@ docker run --rm -it -v $(pwd):/home/rstudio \
     qp:qp5 \
     python3.10 src/main.py \
     --output_dir output-reproduced \
-    --n_trials 20 \
-    --n_runs 2
+    --n_trials 10 \
+    --n_runs 3
 ```
 
 The output will be available in the directory `output-reproduced`. You can change the values in `--n_trails` or `--n_runs` as you'd like (though it may take a while to run!).
