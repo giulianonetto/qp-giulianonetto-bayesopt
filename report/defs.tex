@@ -31,6 +31,7 @@
 \def\bfV{\mathbf{V}}
 \def\bfW{\mathbf{W}}
 \def\bfX{\mathbf{X}}
+\def\bfx{\mathbf{x}}
 \def\bfY{\mathbf{Y}}
 \def\bfZ{\mathbf{Z}}
 
@@ -178,6 +179,11 @@
 \def\Perm{\Sigma} %random permutation
 \def\part{\pi} %fixed partition
 \def\Part{\Pi} %random partition
-
-
+\newcommand{\citee}[1]{\citeauthor{#1} (\citeyear{#1})}
+\newtheorem{thm}{Theorem}
+\newtheorem{theorem}{Theorem}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{cor}[thm]{Corollary}
+\algnewcommand\algorithmicbreak{\textbf{break}}
+\algnewcommand\Break{\algorithmicbreak{} }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

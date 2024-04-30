@@ -2,13 +2,17 @@
 
 % Mini-proposals section
 
-\section{Mini-proposals}
+\section{Experiment proposal}
 
-% each mini-proposal gets its own subsection
-\subsection{Proposal 1: MY PROPOSAL TITLE} % enter your proposal title
+The objective of the proposed experiment is to compare Bayesian Optimization methods in terms of optimization performance and efficiency. In this context, optimization performance refers to how closely a given algorithm finds the global optimum of the objective function of interest, while optimization efficiency relates to the algorithm speed. Across a range of scenarios, we will repeatedly simulate a full Bayesian Optimization run. Two outcomes are considered: the ``gap" measure of performance (following \cite{Huang2006}) and running time (e.g., in seconds). For any objective function $f$ with a global minimum $f^*$, the gap after $n$ steps is defined as
+\begin{align}
+    G_n = \frac{f(x_1) - f_n^*}{f(x_1)-f^*}\label{gap}
+\end{align}
+where $x_1$ is the first evaluated point of the input space and $f_n^*=\max_{m\leq n}f(x_m)$ is the incumbent\footnote{Notice here we work with minimization of the objective rather than maximization.}. If the BayesOpt algorithm successfully finds the global minimum $f^*$ after $n$ steps, the gap evaluates to one.
 
+For testing, we consider three objective functions: Hartman 6, Goldstein–Price, and Shubert. While limited, this set of test functions seems to yield varying levels of optimization difficulty \cite{Osborne2009}. For each of these test functions, we will compare performance and efficiency across two main variables of interest:
+implementation (BOPytorch versus DiceOptim) and acquisition function (expected improvement, knowledge gradient, and predictive entropy search). These represent a total of 18 simulation scenarios (three test functions, two implementations, and three acquisition functions)\footnote{Some of these options might change depending on what is implemented within BOPytorch and DiceOptim.}.
 
-% each mini-proposal gets its own subsection
-\subsection{Proposal 2: MY OTHER PROPOSAL TITLE} % enter your proposal title
+For all simulation scenarios, we fix a budget of objective function evaluations to 100, emulating a setting of limited resources. For the performance comparison, the expected output is a six-panel figure with one plot for each combination of implementation and activation function. Each plot will show average $G_n$ curves as a function of step number $n$ and coloured by test function. Each curve will also be accompanied by pointwise 95\% confidence intervals. For running time comparisons, we will provide one plot per combination of the activation and test functions, combined into a nine-panel figure. Each plot will show a boxplot of running times for each implementation.
 
-% ...
+Focusing on the performance evaluation, we calculate the required sample size (number of simulation runs) based on the expected distribution of $G_n$. Since $G_n$ is a real number between 0 and 1, a reasonable distribution for a highly variable scenario is $\text{Beta}(5, 5)$, which has 95\% of its density between 0.2 and 0.8. Based on this distribution, assuming a standard deviation around $0.15$, a total of 100 simulation runs is enough to yield asymptotic (Wald-type) 95\% confidence intervals of width equal to 0.06 (i.e., margins of error of $\pm 0.03$). In light of time limitations, this level of precision was considered reasonable. 
