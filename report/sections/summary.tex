@@ -2,4 +2,81 @@
 
 % Summary section
 
-\section{Summary}
+\section{Bayesian Optimization: an overview}
+
+Bayesian optimization is, as the name suggests, an optimization framework. Here, we provide a summary of its overall strategy based on the tutorial paper by \citee{Frazier2018}.
+
+\vspace{1em}
+
+Suppose we are interested in maximizing (or minimizing) some real-valued objective function $f{:\,}\mathcal{X}\rightarrow\mathbb{R}$ defined in some abstract domain $\mathcal{X}$ (e.g., $\mathcal{X}=\mathbb{R}$) \cite{Garnett2023}. If we can feasibly evaluate $f$ often enough and $f$ is continuously differentiable, we may leverage derivative information to guide us through the optimization procedure using common algorithms such as gradient ascent or Newton's method. The overall goal is to survey the domain $\mathcal{X}$ until we find a point $x^*\in \mathcal{X}$ that attains the global maximal value of $f$, $f^*$:
+\begin{align}
+    &x^*\in \underset{x\in\mathcal{X}}{\arg\max}\ f(x)&f^*=\max_{x\in\mathcal{X}}f(x)=f(x^*)\label{optim}
+\end{align}
+But what if $f$ is \textit{expensive to evaluate}? For instance, $f$ could be the outcome of some scientific experiment, which may take anything from minutes to years to be completed. It could also require human interaction that can only happen a limited number of times, or cost a substantial amount of money. In such cases, the number of evaluations of $f$ is limited, we lack any known structure around $f$ like concavity or linearity, and we do not have any derivative information. Beyond expensive, the objective function $f$ is a black box.
+
+Originating with the work from \citee{Kushner1964}, efficient global optimization of expensive black-box functions was popularized by \citee{Jones1998}. In a tutorial paper, \citee{Frazier2018} describes the resulting field of \textbf{Bayesian Optimization (BayesOpt)}: a collection of methods based on machine learning designed to conquer black-box, derivative-free global optimization tasks.
+
+In BayesOpt, the input space over which we optimize $f$ is a subset of $\mathbb{R}^d$, typically for $d\leq 20$. Since we do not know much about $f$, the optimization may explore a feasible set $A\subseteq\mathcal{X}$ in which membership is easy to assess (e.g., $A=[0, 1]^d$ or the $d$-dimensional simplex). Problems addressing more general input spaces are termed ``exotic'' by \citee{Frazier2018}. Many real-world problems have some form of ``exotic'' characteristic. Here, however, we focus on the simplest version of BayesOpt: we have a single objective function $f$ evaluated without noise over a feasible set $A\subseteq\mathcal{X}$ that is easy to query. While continuous, the objective function $f$ is not assumed to be concave, and we have no access to derivative information. 
+
+Two main components lie at the heart of BayesOpt: (i) a Bayesian statistical model for the objective function $f$, and (ii) a so-called \textit{acquisition function} $a_f(x){:\,}A\rightarrow\mathbb{R}$, which assigns a score to each point in the input space, given our current belief about $f$. After observing data points $\calD_n=\{x_1, x_2, \dots, x_n\}$, we evaluate the true $f$ at the point $x\in A$ that maximizes the acquisition function $a_{f\vert\calD_n}(x)$.
+
+Notice that the acquisition function depends on the posterior distribution of the objective function $f\vert \calD_n$\footnote{We abuse notation slightly by using $f\vert \calD_n$ to mean $f\vert \calD^f_n$ with $\calD^f_n = \{f(x){\,:\ } x \in \calD_n\}$.}. If the true objective function $f$ has been evaluated without noise at $\calD_n$, then the posterior variance must be zero at $\calD_n$ and positive everywhere else (i.e., we know the true value of $f$ at every point in $\calD_n$ and we estimate $f$ at any point in $A\setminus\calD_n$ based on the posterior $f\vert\calD_n$). Ultimately, having a model for $f$ allows us to iteratively search for points that maximize the objective function, even though we might not know its true value over the entire input space. Following \citee{Frazier2018}, we summarize the BayesOpt procedure as pseudo-code in Algorithm (\ref{bayesopt-algo})\footnote{In line 5, we can equivalently update our current posterior with the new data point $f(x_n)$.}.
+
+\begin{algorithm}
+\caption{Basic Bayesian Optimization pseudo-code, adapted from \citee{Frazier2018}}\label{bayesopt-algo}
+\begin{algorithmic}[1]\onehalfspacing
+\Procedure{BayesOpt (simplified)}{}
+\State \textbf{Input:} acquisition function $a_f(x)$, a budget of $N\in\bbN$ possible evaluations of the objective $f$, and a Gaussian Process prior on $f$
+\State $\calD_{n}\gets\{x_1, x_2, \dots, x_{n_0}\}$ from $A$ (e.g., sampled uniformly at random) for $n_0$ initial points with $0 \leq n_0 < N$
+\For{$n \in \{n_0, n_0+1, \dots, N\}$}
+\State Compute posterior $f\vert\calD_n$ using prior on $f$ and observed $\{f(x){\,:\ } x\in \calD_n \}$
+\State $x_n\gets \underset{x\in A}{\arg\max}\ a_{f\vert\calD_n}(x)$\Comment{Choose next point based on acquisition function}
+\State Update $\calD_{n}\gets\calD_{n}\cup \{x_n\}$
+\EndFor
+\State \textbf{Return:} either $\widehat{x^*}=\underset{x\in \calD_n}{\arg\max}\ f(x)$ or $\widehat{x^*}=\underset{x\in A}{\arg\max}\ \bbE_{f\vert\calD_n}\big[f(x)\big]$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{The role of Gaussian Process}
+
+Since $f$ is assumed to be a continuous black-box function, Gaussian Process (GP) regression is a natural choice to model $f$. A GP model is a probability distribution over possible functions $f$ with the property that any finite collection of points $x\in\calX$ has a multivariate Gaussian joint distribution. If $x_{1:k}=[x_1, x_2, \dots, x_k]$ is a finite collection of points in the input space, then a GP prior on $f$ is:
+\begin{align}
+    f(x_{1:k}) \sim \calN(\mu_0(x_{1:k}), \Sigma_0(x_{1:k}, x_{1:k}))\label{prior}
+\end{align}
+for appropriately defined prior mean and covariance functions $\mu_0(x)$ and $\Sigma_0(x, x^\prime)$, respectively. Following \citee{Frazier2018}, here we employ the compact notation $g(x_{1:k})=[g(x_1), \dots, g(x_k)]$ to mean the elementwise evaluation of some function $g$ on the collection $x_{1:k}$. Unless guided by application-specific prior knowledge, the prior mean function is often just a constant value or some linear function of the input space. The prior covariance function, often referred to as the kernel, typically encodes the prior belief that points closer together should be more correlated than points far apart. The two most common kernels are the Power Exponential (or Gaussian) kernel and the M\`{a}tern kernel, both of which carry hyperparameters that guide, for instance, how quickly the function $f$ changes with each dimension of the input space.
+
+Under the Bayesian paradigm, after we observe data points $f(x_{1:n})=[f(x_1), \dots, f(x_n)]$ and given our prior (\ref{prior}), we can compute the posterior distribution for a new data point $x_k$ with $k=n+1$ as
+\begin{align}
+    f(x_k)\big\vert f(x_{1:n}) \sim \calN(\mu_n(x_{k}), \sigma_n(x_{k})^2)\label{posterior}
+\end{align}
+where the posterior mean function $\mu_n(x)$ is now a weighted average of the prior mean function and some estimate based on the observed data $f(x_{1:n})$ (which also depends on the prior covariance function) \cite{Frazier2018}. The posterior variance function $\sigma_n(x_{k})^2$ depends on the prior covariance function minus a term corresponding to the variance removed due to observing $f(x_{1:n})$. An example point estimate along with a 95\% credible interval for the objective function at $x_k$ can then be computed as $\mu_n(x_k) \pm 1.96\, \sigma_n(x_k)$. A key practical advantage of GP regression is that the posterior mean and covariance functions are known in closed form (see Equation (3) in \citee{Frazier2018}). These can be computed efficiently, e.g., by using Cholesky decomposition and solving linear systems of equations, which make the relevant matrix operations faster and more numerically stable.  
+
+\subsection{Acquisition function}
+
+How do we choose the next point $x\in A$ to evaluate $f$? Once we have the full posterior distribution $f\vert \calD_n$, we can then compute the required acquisition function $a_{f\vert\calD_n}(x)$, whose maximization over $x\in A$ now takes into account all data available so far. The most commonly used acquisition function,  Expected Improvement  (EI) generally performs well, is inexpensive to evaluate, and can be optimized with derivative-based methods such as L-BFGS-B \cite{Frazier2018, Jones1998, Liu1989}.
+
+Briefly, after observing $f(x_{1:n})$, let $f_n^*=\max_{m\leq n}f(x_m)$ be the maximum objective value evaluated so far, often called the \textit{incumbent} \cite{Garnett2023}. If we evaluate a new value $f(x)$ at some candidate point $x\in A$, our improvement in terms of the objective function is $I_n(x)=\max\{f(x)-f_n^*, 0\}$. While $f(x)$ is unknown at decision time\footnote{i.e., before deciding to evaluate $f$ at this specific $x$.}, the expected value of $I_n(x)$, $EI_n(x)$, is the expected improvement at $x$ and can be computed in closed form \cite{Frazier2018, Jones1998}:
+\begin{align}
+    EI_n(x) &{\ :=\ } \bbE_{f\vert\calD_n}\big[\max\{f(x)-f_n^*, 0\}\big]\\
+    &=
+    \max\{\Delta_n(x), 0\} + \sigma_n(x)\varphi\left(\frac{\Delta_n(x)}{\sigma_n(x)}\right)
+    -
+    |\Delta_n(x)|\Phi\left(\frac{\Delta_n(x)}{\sigma_n(x)}\right)
+    \label{eq:ei}
+\end{align}
+where $\Delta_n(x)=\mu_n(x)-f_n^*$ is described by \citee{Frazier2018} as the ``expected difference in quality (objective value) between the proposed point $x$ and the previous best''. Also, $\varphi(y)$ is the density of a standard normal random variable at $y$, and $\Phi(y)$ is the distribution function of a standard normal random variable at $y$.
+
+The EI at $x$ is high when $\Delta_n(x)$ is large, representing a higher expected gain in terms of the objective value, or when $\sigma_n(x)$ is large, representing higher uncertainty regarding the objective. This dependence on both $\sigma_n(x)$ and $\Delta_n(x)$ encodes an ``exploration vs. exploitation trade-off'' into the acquisition function. Therefore, after observing $f(x_{1:n})$, the next point at which the Bayesian Optimization algorithm evaluates $f$ is $x_{n+1}= \underset{x\in A}{\arg\max}\ EI_n(x)$. We refer to Figure 1 in \citee{Frazier2018} for an intuitive illustration of this procedure using EI.
+
+EI compares potential values of $f(x)$ against the previous best value, $f_n^*$. Another reasonable approach, however, replaces the incumbent with the highest possible posterior mean $\mu_{n}^*=\max_x \mu_n(x)$. This is especially attractive when, for instance, $f$ is evaluated with noise, in which case there is uncertainty around the value of the incumbent $f_n^*$. If we were to observe another value of $f$, the improvement in the objective function would then be $\Delta = \mu_{n+1}^*-\mu_{n}^*$. Just like $I_n$, the value of $\Delta$ is unknown at decision time. For each $x\in A$, the Knowledge Gradient at $x$ is then defined as its expected value:
+\begin{align}
+    KG_n(x) = \bbE\big[\mu_{n+1}^*-\mu_{n}^*\,\vert\, x_{n+1}=x\big]\label{eq:kg}
+\end{align}
+In general, $KG_n(x)$ is large when $x$ causes the maximum of the posterior mean function to increase, even if $f(x)$ itself is not larger than $f_n^*$. One way to compute (\ref{eq:kg}) is to sample $f$ from the current posterior distribution $f\vert\calD_n$ as in (\ref{posterior}) and use these posterior draws to generate a posterior distribution for $\mu_{n+1}^*$. This has a similar flavour to traditional Bayesian workflows that employ posterior predictive distributions to compute quantities of interest, taking into account both parameter uncertainty (i.e., in the posterior mean and variance functions) and sampling uncertainty (i.e., since $f(x)$ is modelled as a normal distribution, even if $\mu(x)$ and $\sigma^2(x)$ are known exactly) \cite{Gelman2013}. Suitable for low-dimensional input spaces, this approach becomes unfeasible for high-dimensional $A$ since you need to generate posterior draws of $f$ for a grid of values of $x\in A$. A faster alternative uses multi-start Stochastic Gradient Ascent to search the input space more efficiently (see Algorithm 3 in \citee{Frazier2018}). For standard BayesOpt problems with noise-free evaluations of $f$, the KG acquisition function may not significantly outperform EI. As such, KG is a better alternative for exotic problems, in particular when $f$ is noisy \cite{Frazier2018}.
+
+Multiple other acquisition functions exist, based on different decision theory criteria -- see, e.g., Table 7.1 in \citee{Garnett2023}. \citee{Frazier2018} also discuss Entropy Search (ES) and Predictive Entropy Search (PES), both of which are based on the reduction in the entropy around the global optimizer $x^*$ from (\ref{optim})\footnote{While $x^*$ is a fixed point in $\calX$, the posterior distribution of $f$ induces a distribution over $x^*$, say $p(x^*)$. Thus, observing $f(x)$ at some $x\in A$ leads to information gain, i.e., entropy reduction about $p(x^*)$. Perhaps a better notation would be a distribution over $\widehat{x^*}$, as an estimator of $x^*$, but we keep consistency with the notation from \citee{Frazier2018}.}. A similar formulation can be constructed with the global maximum $f^*$ instead of with $x^*$. Similar to KG, ES and PES depend on how a new measurement $x$ impacts the posterior distribution over the entire input space, and not just whether the new measurement improves the previous best value. While both ES and PES lead to the same exact acquisition function, PES can be considerably easier to compute in practice.
+
+The above acquisition functions are often introduced in the context of single-step decisions: given our current data, what is the single point $x\in A$ that should be sampled next? Multi-step optimal acquisition functions attempt to extend this idea by simultaneously considering multiple steps ahead \cite{Frazier2018}. For instance, if we know that we still have two evaluations of $f$ left in our budget, then maybe we should favour exploration of the input space for my immediate next point $x_{n+1}$, and then favour exploitation for my very last one, $x_{n+2}$ \cite{Garnett2023}. In general, \citee{Frazier2018} states that multiple-step optimal algorithms often do not provide substantial gains over simpler single-step solutions, but are promising alternatives for specific applications.
+
+Overall, Bayesian Optimization provides a systematic way to search for the global optimum of expensive black-box functions. While we focused on the traditional noise-free context, the BayesOpt procedure generalizes to multiple exotic settings, as described by \citee{Frazier2018}. For instance, the KG acquisition function generalizes naturally to noisy observations of $f$, which can be easily incorporated into the GP regression framework. The input space may also be extended beyond simple sets of which membership is easy to evaluate. Multiple sources of information and random environmental conditions may also be incorporated into the definition of the objective function. Each of these exotic problems may require adaptations of the workflow described here, in particular regarding the acquisition functions. While beyond the scope of this report, it is important to note that BayesOpt holds great potential for application in multiple areas (e.g., see Appendix of \citee{Garnett2023}). These include chemical engineering, materials science, drug discovery, biological sciences, and many others.
