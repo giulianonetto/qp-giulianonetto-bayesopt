@@ -276,3 +276,14 @@ TSWLatexianTemp*
 
 # DS_store
 .DS_store
+
+# custom
+*tmp*
+__pycache__
+README_files
+README.html
+output-botorch*
+output-diceoptim*
+output-[0-9]*
+.ipython
+.radian_history
