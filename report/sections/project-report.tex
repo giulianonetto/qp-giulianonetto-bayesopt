@@ -17,6 +17,12 @@ Finally, a ``negative control case'' was also assessed: instead of selecting the
 
 All analyses are fully reproducible with as few as two commands with code from the GitHub repository \href{https://github.com/giulianonetto/qp-giulianonetto-bayesopt}{https://github.com/giulianonetto/qp-giulianonetto-bayesopt}, based on a fixed Docker image \cite{merkel2014} with Python (3.10) and R (v. 4.3.2).
 \subsection{Results}
+Gap and running time results were recorded across 100 simulation runs. The estimated mean Gap values per iteration are shown in Figure (\ref{fig:gap}). At a given iteration number, a higher mean Gap value means the optimization procedure reached closer to the global optimum, on average. Optimization performance varied substantially depending on test and acquisition functions as well as on the choice of implementation.
 
+\begin{figure}[H]
+\includegraphics[width=0.99\linewidth]{output/gap_results.png}
+\caption{\small \textbf{Optimization performance depends on test and acquisition functions as well as on implementation choice}. For each distribution, a two-group dataset with 1,000 features and either 5 or 50 samples per group was generated ($n=10$ and $n=100$, respectively). Points represent observed/theoretical quantiles of p-values from a two-sample t-test for each feature (theoretical distribution: Unif(0, 1)). Different colours indicate the proportion of the lowest overall mean features that were filtered out (e.g., ``Lowest 10\%" retains features whose overall mean is above the $10^{th}$ percentile of features' overall means). All features were sampled iid with the following distributions: Poisson($\lambda$=500), Binomial(n=1000, p=0.5), NB(size=$r_{\text{NB}}$, $\mu$=500), and Beta-Bin(size=$r_{\text{BB}}$, p=$0.5$, $\rho$=0.01). In the Negative Binomial and Beta-Binomial cases, the sizes $r_{\text{NB}}$ and $r_{\text{BB}}$ were sampled independently from a Poisson($\lambda$=1000) to emulate varying library sizes from NGS experiments. Dashed black lines represent the expected QQ line.}
+\label{fig:gap}
+\end{figure}
 
 \subsection{Discussion}
