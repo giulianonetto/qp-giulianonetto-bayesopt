@@ -1,6 +1,9 @@
 % header.tex
-% this is where you load pacakges, specify custom formats, etc.
 
+% this is where you load pacakges, specify custom formats, etc.
+\usepackage[sort&compress,square,comma,numbers]{natbib}
+\usepackage{bibentry}
+\nobibliography*
 \usepackage[left=1in,right=1in,top=1in,footskip=25pt]{geometry} 
 % \usepackage{changepage}
 \usepackage{amsmath,amsthm,amssymb,amsfonts}
@@ -10,6 +13,8 @@
 % Load dsfont this to get proper indicator function (bold 1) with \mathds{1}:
 \usepackage{dsfont}
 \usepackage{centernot}
+\usepackage{setspace}
+\onehalfspacing
 
 \usepackage[usenames,dvipsnames]{xcolor}
 
@@ -27,8 +32,6 @@
 \DeclareGraphicsExtensions{.pdf,.png,.jpg}
 \graphicspath{ {fig/} }
 
-\usepackage[sorting=nyt,backend=biber,bibstyle=alphabetic,citestyle=alphabetic,giveninits=true]{biblatex}
-
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \setlength{\headheight}{40pt}
@@ -43,3 +46,14 @@
 
 \usepackage[capitalize]{cleveref}
 \crefname{appsec}{Appendix}{Appendices} % you can tell cleveref what to call things
+\usepackage{bm}
+\definecolor{codebgcolor}{rgb}{0,0,0}
+\usepackage[outputdir=../]{minted}
+\usemintedstyle{fruity}
+\usepackage{bbm}
+\usepackage{bm}
+
+\renewcommand{\figurename}{\textbf{Figure}}
+\renewcommand{\thefigure}{\textbf{\arabic{figure}}}
+\usepackage{algorithm}
+\usepackage{algpseudocode}

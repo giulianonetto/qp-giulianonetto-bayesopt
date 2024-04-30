@@ -6,34 +6,50 @@
 
 % Note: You will get an empty bibliography warning when compiling until you include a citation.
 
-\documentclass[10pt]{article}
+\documentclass[12pt]{article}
 \input{header}
 \input{defs}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % your title/author/date information go here
-\title{\LaTeX\ Template for STAT 548 Qualifying Paper Report} % replace with your title
-\author{Benjamin Bloem-Reddy} % replace with your name
+\title{STAT 548 Qualifying Paper Report} % replace with your title
+\author{Giuliano Netto Flores Cruz} % replace with your name
 \date{\today} % replace with your submission date
 
-\bibliography{../../ref/qp-bib.bib} % add the title of your bibliography file
+\bibliographystyle{unsrtnat}
 
 % start of document
 \begin{document}
 
 \maketitle
 
+\vspace{5mm}
+
+\begin{flushleft}
+{\large \textbf{Supervisor:} Prof. Dr. William J. Welch}
+
+\vspace{5mm}
+
+{\large \textbf{GitHub repo:}} \href{https://github.com/giulianonetto/qp-giulianonetto-bayesopt}{https://github.com/giulianonetto/qp-giulianonetto-bayesopt}
+\vspace{5mm}
+
+{\large \textbf{Chosen paper:}}
+\vspace{2mm}
+
+\bibentry{Frazier2018}
+
+\end{flushleft}
+
 % summary section
-\include{sections/summary}
+\include{report/sections/summary}
 
-% mini-proposals section
-\include{sections/mini-proposals}
+% mini-project report section
+\include{report/sections/mini-proposals}
 
-% project report section
-\include{sections/project-report}
+\include{report/sections/project-report}
 
-
-\printbibliography
+\newpage
+\bibliography{qp-bib}
 
 \end{document}
