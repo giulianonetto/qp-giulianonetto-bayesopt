@@ -8,7 +8,7 @@ The objective of the proposed experiment is to compare Bayesian Optimization met
 \begin{align}
     G_n = \frac{f(x_1) - f_n^*}{f(x_1)-f^*}\label{gap}
 \end{align}
-where $x_1$ is the first evaluated point of the input space and $f_n^*=\max_{m\leq n}f(x_m)$ is the incumbent\footnote{Notice here we work with minimization of the objective rather than maximization.}. If the BayesOpt algorithm successfully finds the global minimum $f^*$ after $n$ steps, the gap evaluates to one.
+where $x_1$ is the first evaluated point of the input space and $f_n^*=\min_{m\leq n}f(x_m)$ is the incumbent\footnote{Notice here we work with minimization of the objective rather than maximization.}. If the BayesOpt algorithm successfully finds the global minimum $f^*$ after $n$ steps, the gap evaluates to one.
 
 For testing, we consider three objective functions: Hartman 6, Goldstein–Price, and Shubert. While limited, this set of test functions seems to yield varying levels of optimization difficulty \cite{Osborne2009}. For each of these test functions, we will compare performance and efficiency across two main variables of interest:
 implementation (BOPytorch versus DiceOptim) and acquisition function (expected improvement, knowledge gradient, and predictive entropy search). These represent a total of 18 simulation scenarios (three test functions, two implementations, and three acquisition functions)\footnote{Some of these options might change depending on what is implemented within BOPytorch and DiceOptim.}.
