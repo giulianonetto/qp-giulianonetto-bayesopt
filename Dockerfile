@@ -10,7 +10,7 @@ RUN echo "PS1='\[\e[1;38;2;231;41;138m\]${VIRTUAL_ENV:+[$(basename -- $VIRTUAL_E
 RUN pip install --upgrade pip
 
 RUN export ALLOW_LATEST_GPYTORCH_LINOP=true
-RUN pip install botorch
+RUN pip install botorch==0.10.0
 RUN pip install ipython plotnine 
 
 RUN R -e "devtools::install_version('DiceOptim', version = '2.1.1', dependencies = T)"
